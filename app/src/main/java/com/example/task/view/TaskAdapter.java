@@ -17,12 +17,21 @@ import java.util.List;
 
 public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder> {
 
+    public interface OnTaskActionListener {
+        void onEdit(Task task);
+        void onDelete(Task task);
+    }
+
     private final List<Task> taskList = new ArrayList<>();
-    public void setData(List<Task> tasks){
+    private OnTaskActionListener listener;
+
+    public void setOnTaskActionListener(OnTaskActionListener listener) {
+        this.listener = listener;
+    }
+
+    public void setData(List<Task> tasks) {
         taskList.clear();
-        if (tasks != null) {
-            taskList.addAll(tasks);
-        }
+        if (tasks != null) taskList.addAll(tasks);
         notifyDataSetChanged();
     }
 
@@ -35,13 +44,15 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
     }
 
     @Override
-    public void onBindViewHolder(@NonNull TaskViewHolder holder, int position){
+    public void onBindViewHolder(@NonNull TaskViewHolder holder, int position) {
         Task task = taskList.get(position);
 
-        holder.task_title.setText(task.task_title);
-        holder.task_description.setText(task.task_description);
-        holder.task_status.setText(task.is_completed ? "Completada" : "Pendiente");
+        holder.title.setText(task.task_title);
+        holder.description.setText(task.task_description);
+        holder.status.setText(task.is_completed ? "Completada" : "Pendiente");
 
+        holder.btnEdit.setOnClickListener(v -> listener.onEdit(task));
+        holder.btnDelete.setOnClickListener(v -> listener.onDelete(task));
     }
 
     @Override
@@ -49,15 +60,17 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         return taskList.size();
     }
 
-    public static class TaskViewHolder extends RecyclerView.ViewHolder {
+    static class TaskViewHolder extends RecyclerView.ViewHolder {
+        TextView title, description, status;
+        Button btnEdit, btnDelete;
 
-        TextView task_title, task_description, task_status;
-
-        public TaskViewHolder(@NonNull View itemView) {
+        TaskViewHolder(View itemView) {
             super(itemView);
-            task_title = itemView.findViewById(R.id.tvTaskTitle);
-            task_description = itemView.findViewById(R.id.tvTaskDescription);
-            task_status = itemView.findViewById(R.id.tvTaskStatus);
+            title = itemView.findViewById(R.id.tvTaskTitle);
+            description = itemView.findViewById(R.id.tvTaskDescription);
+            status = itemView.findViewById(R.id.tvTaskStatus);
+            btnEdit = itemView.findViewById(R.id.btnEditTask);
+            btnDelete = itemView.findViewById(R.id.btnDeleteTask);
         }
     }
 }

@@ -3,7 +3,6 @@ package com.example.task;
 import android.content.Intent;
 import android.os.Bundle;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -17,34 +16,50 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    private TaskAdapter taskAdapter ;
-    private TaskController taskController;
+    private TaskController controller;
+    private TaskAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 
-        RecyclerView recyclerViewBooks = findViewById(R.id.rvTasks);
-        recyclerViewBooks.setLayoutManager(new LinearLayoutManager(this));
+        controller = new TaskController(this);
+        adapter = new TaskAdapter();
 
-        taskAdapter = new TaskAdapter();
-        recyclerViewBooks.setAdapter(taskAdapter);
+        RecyclerView rv = findViewById(R.id.rvTasks);
+        rv.setLayoutManager(new LinearLayoutManager(this));
+        rv.setAdapter(adapter);
 
-        taskController = new TaskController(this);
-        List<Task> tasks = taskController.getAllTasks();
-        taskAdapter.setData(tasks);
+        adapter.setOnTaskActionListener(new TaskAdapter.OnTaskActionListener() {
+            @Override
+            public void onEdit(Task task) {
+                Intent i = new Intent(MainActivity.this, EditTaskActivity.class);
+                i.putExtra("task_id", task.id);
+                startActivity(i);
+            }
 
-        FloatingActionButton fabAddBook = findViewById(R.id.fabAddTask);
-
-        fabAddBook.setOnClickListener(view -> {
-            showAddTaskActivity();
+            @Override
+            public void onDelete(Task task) {
+                controller.deleteTask(task);
+                loadTasks();
+            }
         });
 
+        FloatingActionButton fab = findViewById(R.id.fabAddTask);
+        fab.setOnClickListener(v ->
+                startActivity(new Intent(this, AddTaskActivity.class))
+        );
     }
-    private void showAddTaskActivity(){
-        Intent intent = new Intent(this, AddTaskActivity.class);
-        startActivity(intent);
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadTasks();
+    }
+
+    private void loadTasks() {
+        List<Task> tasks = controller.getAllTasks();
+        adapter.setData(tasks);
     }
 }
